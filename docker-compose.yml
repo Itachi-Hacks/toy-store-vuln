@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: toystore_db
+    environment:
+      POSTGRES_DB: vulnlab
+      POSTGRES_USER: vulnuser
+      POSTGRES_PASSWORD: vulnpass
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - toystore-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vulnuser -d vulnlab"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build: .
+    container_name: toystore_web
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: vulnlab
+      DB_USER: vulnuser
+      DB_PASS: vulnpass
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - toystore-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  toystore-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
