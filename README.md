@@ -71,7 +71,7 @@ Make sure you have:
 ### 2) Run the lab
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Itachi-Hacks/toy-store-vuln.git
 cd toy-store-vuln-COMPLETE
 docker compose up --build
 ```
